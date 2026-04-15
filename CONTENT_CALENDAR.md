@@ -295,11 +295,44 @@ These are your most important videos. They define your channel's SEO footprint a
 
 Track every thumbnail's performance:
 
-| Video | Thumbnail V1 CTR | Thumbnail V2 CTR | Winner | Notes |
-|---|---|---|---|---|
-| Video 1 | | | | |
-| Video 2 | | | | |
-| ... | | | | |
+| # | Title | Thumbnail V1 CTR | Thumbnail V2 CTR | Winner | Notes |
+|---|---|---|---|---|---|
+| 1 | The REAL Reason Hitler Stopped the Panzer Advance at Dunkirk | | | | |
+| 2 | The Battle of Stalingrad: How 300,000 Germans Were Trapped and Annihilated | | | | |
+| 3 | Hitler's WORST Military Decision of the Entire War | | | | |
+| 4 | The Tiger Tank — Why Germany's Greatest Weapon Was Also Its Biggest Mistake | | | | |
+| 5 | What If D-Day Had Failed? How Hitler Would Have Won | | | | |
+| 6 | The Battle of Britain: How 1,000 Pilots Saved Western Civilization | | | | |
+| 7 | The Battle of Midway: The 4 Minutes That Changed the Pacific War | | | | |
+| 8 | Inside Operation Mincemeat — The Dead Man Who Changed D-Day | | | | |
+| 9 | The Spitfire vs Messerschmitt Bf 109: The Fighter That Decided Britain's Fate | | | | |
+| 10 | Rommel: Desert Fox or Overrated General? The Truth After 80 Years | | | | |
+| 11 | The Battle of the Bulge: Hitler's Last Desperate Gamble | | | | |
+| 12 | The T-34 Tank: How Soviet Engineering Won the Eastern Front | | | | |
+| 13 | The Night Witches: The Soviet Women Pilots Who Terrified Germany | | | | |
+| 14 | Operation Barbarossa: Hitler's Greatest Gamble That Doomed the Reich | | | | |
+| 15 | The One Man Who Almost Won WWII for Germany — And How He Failed | | | | |
+| 16 | What If Germany Had Taken Moscow in 1941? | | | | |
+| 17 | The P-51 Mustang: The Fighter That Won the Air War Over Europe | | | | |
+| 18 | 7 Decisions That Cost Germany the Eastern Front | | | | |
+| 19 | Inside Bletchley Park: How Britain's Codebreakers Shortened WWII by Two Years | | | | |
+| 20 | The Fall of France: How the Most Powerful Army in Europe Collapsed in 6 Weeks | | | | |
+| 21 | The Pacific War's Deadliest Battle You've Never Heard Of | | | | |
+| 22 | How Stalin's Purges Nearly Lost WWII for the Allies | | | | |
+| 23 | The U-Boat: Inside Germany's Underwater War Machine | | | | |
+| 24 | Patton: America's Greatest General or Its Biggest Problem? | | | | |
+| 25 | The Dark Secret Behind the Nuremberg Trials That Was Never Disclosed | | | | |
+| 26 | The Bombing of Dresden: Justified War Strategy or War Crime? | | | | |
+| 27 | How One Intelligence Failure Changed the Entire Pacific War | | | | |
+| 28 | The Tuskegee Airmen: America's Black Fighter Squadron That Changed WWII | | | | |
+| 29 | Why Japan's Empire Was Always Doomed to Fail | | | | |
+| 30 | The Forgotten Battle More Brutal Than Iwo Jima | | | | |
+| 31 | Nazi Wonder Weapons: The V-1 and V-2 That Couldn't Save Germany | | | | |
+| 32 | The Battle That Churchill Sacrificed to Win the War — And Never Admitted | | | | |
+| 33 | The Soviet Marshal Who Won WWII — And Was Then Betrayed by Stalin | | | | |
+| 34 | Operation Paperclip: How America Hired Nazi Scientists and Lied About It | | | | |
+| 35 | What If Japan Had Invaded Australia? | | | | |
+| 36 | 90 Days In: What the Data Says About the WWII YouTube Niche | | | | |
 
 **Rule:** If CTR < 3.5% after 500 impressions, change the thumbnail. If CTR < 3.5% after 2,000 impressions, change both the title and thumbnail.
 
