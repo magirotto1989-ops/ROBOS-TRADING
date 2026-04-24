@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTH (NextAuth compatible)
+// ============================================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================
+// USUÁRIOS
+// ============================================================
+
+enum Role {
+  ADMIN
+  RECEPTIONIST
+  PROFESSIONAL
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(RECEPTIONIST)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  professional Professional?
+}
+
+// ============================================================
+// CLÍNICA
+// ============================================================
+
+model Clinic {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  address   String?
+  city      String?
+  whatsapp  String?
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  professionals Professional[]
+  patients      Patient[]
+  appointments  Appointment[]
+  waitingList   WaitingList[]
+}
+
+// ============================================================
+// PROFISSIONAIS
+// ============================================================
+
+model Professional {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  clinicId   String
+  name       String
+  specialty  String
+  crm        String?
+  cro        String?
+  phone      String?
+  bio        String?  @db.Text
+  avatarUrl  String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  clinic       Clinic        @relation(fields: [clinicId], references: [id])
+  appointments Appointment[]
+  timeSlots    TimeSlot[]
+  waitingList  WaitingList[]
+}
+
+// ============================================================
+// DISPONIBILIDADE (AGENDA BASE)
+// ============================================================
+
+model TimeSlot {
+  id             String  @id @default(cuid())
+  professionalId String
+  dayOfWeek      Int     // 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sab
+  startTime      String  // "08:00"
+  endTime        String  // "08:30"
+  durationMin    Int     @default(30)
+  isActive       Boolean @default(true)
+
+  professional Professional @relation(fields: [professionalId], references: [id])
+
+  @@unique([professionalId, dayOfWeek, startTime])
+}
+
+// ============================================================
+// PACIENTES
+// ============================================================
+
+model Patient {
+  id        String    @id @default(cuid())
+  clinicId  String
+  name      String
+  phone     String    // número WhatsApp (ex: 5511999999999)
+  email     String?
+  birthDate DateTime?
+  cpf       String?   @unique
+  notes     String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  clinic        Clinic                @relation(fields: [clinicId], references: [id])
+  appointments  Appointment[]
+  waitingList   WaitingList[]
+  conversations WhatsAppConversation[]
+
+  @@unique([clinicId, phone])
+}
+
+// ============================================================
+// AGENDAMENTOS
+// ============================================================
+
+enum AppointmentStatus {
+  SCHEDULED   // agendado
+  CONFIRMED   // confirmado pelo paciente
+  CANCELLED   // cancelado
+  COMPLETED   // realizado
+  NO_SHOW     // faltou
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  clinicId       String
+  professionalId String
+  patientId      String
+  dateTime       DateTime          // data e hora da consulta
+  durationMin    Int               @default(30)
+  status         AppointmentStatus @default(SCHEDULED)
+  notes          String?           @db.Text
+  reminderSent   Boolean           @default(false)
+  reminderJobId  String?           // BullMQ job ID
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  clinic       Clinic       @relation(fields: [clinicId], references: [id])
+  professional Professional @relation(fields: [professionalId], references: [id])
+  patient      Patient      @relation(fields: [patientId], references: [id])
+
+  @@index([dateTime])
+  @@index([patientId])
+  @@index([professionalId])
+  @@index([status])
+}
+
+// ============================================================
+// FILA DE ESPERA
+// ============================================================
+
+model WaitingList {
+  id             String    @id @default(cuid())
+  clinicId       String
+  patientId      String
+  professionalId String?
+  specialty      String?
+  requestedAt    DateTime  @default(now())
+  notified       Boolean   @default(false)
+  notifiedAt     DateTime?
+  notes          String?
+
+  clinic       Clinic        @relation(fields: [clinicId], references: [id])
+  patient      Patient       @relation(fields: [patientId], references: [id])
+  professional Professional? @relation(fields: [professionalId], references: [id])
+}
+
+// ============================================================
+// CONVERSAS WHATSAPP (estado do chatbot)
+// ============================================================
+
+enum ConversationState {
+  IDLE
+  GREETING
+  IDENTIFYING
+  MENU
+  SCHEDULING_SPECIALTY
+  SCHEDULING_PROFESSIONAL
+  SCHEDULING_DATE
+  SCHEDULING_TIME
+  SCHEDULING_CONFIRM
+  CANCELLING
+  CANCELLING_CONFIRM
+  WAITING_LIST
+  SUPPORT
+}
+
+model WhatsAppConversation {
+  id          String            @id @default(cuid())
+  phone       String            @unique
+  patientId   String?
+  state       ConversationState @default(IDLE)
+  context     Json?             // dados temporários da conversa
+  lastMessage DateTime          @default(now())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  patient  Patient?         @relation(fields: [patientId], references: [id])
+  messages ChatMessage[]
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  fromPatient    Boolean  // true = paciente, false = bot
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  conversation WhatsAppConversation @relation(fields: [conversationId], references: [id])
+}
