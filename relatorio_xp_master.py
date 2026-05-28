@@ -28,6 +28,7 @@ VERMELHO     = colors.HexColor("#C0392B")
 LARANJA      = colors.HexColor("#E67E22")
 AMARELO      = colors.HexColor("#F1C40F")
 VERDE        = colors.HexColor("#1E8449")
+VERDE_ESCURO = colors.HexColor("#145A32")
 CINZA_CLARO  = colors.HexColor("#F2F3F4")
 CINZA_MEDIO  = colors.HexColor("#BDC3C7")
 BRANCO       = colors.white
@@ -36,8 +37,7 @@ PRETO        = colors.black
 styles = getSampleStyleSheet()
 
 def style(name, **kw):
-    s = ParagraphStyle(name, **kw)
-    return s
+    return ParagraphStyle(name, **kw)
 
 titulo_doc = style("TituloDoc",
     fontSize=22, leading=28, textColor=BRANCO,
@@ -69,6 +69,12 @@ bullet_style = style("Bullet",
     leftIndent=14, firstLineIndent=-10,
     spaceBefore=2, spaceAfter=2)
 
+bullet_verde = style("BulletVerde",
+    fontSize=10, leading=15, textColor=VERDE_ESCURO,
+    fontName="Helvetica-Bold", alignment=TA_LEFT,
+    leftIndent=14, firstLineIndent=-10,
+    spaceBefore=3, spaceAfter=3)
+
 bold_body = style("BoldBody",
     fontSize=10, leading=15, textColor=AZUL_ESCURO,
     fontName="Helvetica-Bold", alignment=TA_LEFT,
@@ -79,10 +85,11 @@ nota_style = style("Nota",
     fontName="Helvetica-Oblique", alignment=TA_JUSTIFY,
     leftIndent=10, rightIndent=10, spaceBefore=4, spaceAfter=4)
 
-verdict_style = style("Verdict",
-    fontSize=12, leading=17, textColor=BRANCO,
-    fontName="Helvetica-Bold", alignment=TA_CENTER,
-    spaceBefore=6, spaceAfter=6)
+destaque_verde = style("DestaqueVerde",
+    fontSize=11, leading=16, textColor=VERDE_ESCURO,
+    fontName="Helvetica-Bold", alignment=TA_JUSTIFY,
+    spaceBefore=4, spaceAfter=4,
+    leftIndent=8, rightIndent=8)
 
 def header_block(texto, cor=AZUL_MEDIO):
     tbl = Table([[Paragraph(texto, sec_header)]], colWidths=[doc.width])
@@ -95,8 +102,28 @@ def header_block(texto, cor=AZUL_MEDIO):
     ]))
     return tbl
 
-def bullet(texto, icon="▸"):
-    return Paragraph(f"{icon} {texto}", bullet_style)
+def bullet(texto, icon="▸", st=None):
+    return Paragraph(f"{icon} {texto}", st or bullet_style)
+
+def caixa_destaque(paragrafos, cor_borda=VERDE, cor_fundo=colors.HexColor("#EAFAF1")):
+    inner = Table([[p] for p in paragrafos], colWidths=[doc.width - 1.2*cm])
+    inner.setStyle(TableStyle([
+        ("LEFTPADDING",   (0,0), (-1,-1), 0),
+        ("RIGHTPADDING",  (0,0), (-1,-1), 0),
+        ("TOPPADDING",    (0,0), (-1,-1), 2),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 2),
+    ]))
+    outer = Table([[inner]], colWidths=[doc.width])
+    outer.setStyle(TableStyle([
+        ("BACKGROUND",    (0,0), (-1,-1), cor_fundo),
+        ("ROUNDEDCORNERS",[6]),
+        ("BOX",           (0,0), (-1,-1), 2, cor_borda),
+        ("TOPPADDING",    (0,0), (-1,-1), 12),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 12),
+        ("LEFTPADDING",   (0,0), (-1,-1), 14),
+        ("RIGHTPADDING",  (0,0), (-1,-1), 14),
+    ]))
+    return outer
 
 def divider(cor=AZUL_CLARO):
     return HRFlowable(width="100%", thickness=1, color=cor, spaceAfter=6, spaceBefore=6)
@@ -109,9 +136,9 @@ capa = Table(
     [[Paragraph("RELATÓRIO DE ANÁLISE DE RISCO", titulo_doc)],
      [Paragraph("XP Investimentos × Banco Master", subtitulo_doc)],
      [Spacer(1, 0.3*cm)],
-     [Paragraph("Tópicos Críticos &amp; Avaliação de Segurança para Investidores", subtitulo_doc)],
+     [Paragraph("Segurança do Patrimônio &amp; Valor da Consultoria Fee-Based", subtitulo_doc)],
      [Spacer(1, 0.5*cm)],
-     [Paragraph(f"Data: {date.today().strftime('%d/%m/%Y')}  |  Uso Exclusivo Interno", data_style)]],
+     [Paragraph(f"Data: {date.today().strftime('%d/%m/%Y')}  |  Uso Exclusivo do Cliente", data_style)]],
     colWidths=[doc.width]
 )
 capa.setStyle(TableStyle([
@@ -132,7 +159,8 @@ story += [
         "O vídeo <b>\"As Íntimas Relações da XP Investimentos com o Banco Master\"</b> expõe uma série de "
         "vínculos entre a maior corretora do Brasil e o Banco Master, que entrou em liquidação extrajudicial "
         "decretada pelo Banco Central em <b>novembro de 2025</b>. A análise a seguir sintetiza os fatos "
-        "apurados e avalia os riscos para investidores que ainda mantêm ativos na plataforma XP.", body),
+        "apurados, esclarece o que está — e o que <b>não está</b> — em risco para o investidor, e evidencia "
+        "como a consultoria independente fee-based protege o patrimônio em cenários como este.", body),
     Spacer(1, 0.3*cm),
 ]
 
@@ -213,13 +241,13 @@ story += [
 
 matriz_data = [
     ["Dimensão de Risco", "Nível", "Justificativa"],
-    ["Risco Reputacional",    "ALTO",   "Ação judicial pública; ampla cobertura midiática negativa"],
-    ["Risco Regulatório",     "ALTO",   "Investigação em andamento pelo MP e possível ação do BC/CVM"],
+    ["Risco Reputacional",    "ALTO",       "Ação judicial pública; ampla cobertura midiática negativa"],
+    ["Risco Regulatório",     "ALTO",       "Investigação em andamento pelo MP e possível ação do BC/CVM"],
     ["Risco Legal",           "MÉDIO-ALTO", "Exposição a indenizações; desfecho incerto"],
-    ["Risco Operacional",     "BAIXO",  "Plataforma estável; sem risco de insolvência imediata"],
-    ["Risco de Solvência",    "BAIXO",  "XP Inc. é empresa listada (NASDAQ) com capital sólido"],
-    ["Risco de Conflito",     "ALTO",   "Modelo de negócio com incentivos desalinhados ao cliente"],
-    ["Risco para Investidor", "MÉDIO",  "Ativos custodiados são separados do patrimônio da corretora"],
+    ["Risco Operacional",     "BAIXO",      "Plataforma estável; sem risco de insolvência imediata"],
+    ["Risco de Solvência",    "BAIXO",      "XP Inc. é empresa listada (NASDAQ) com capital sólido"],
+    ["Risco de Conflito",     "ALTO",       "Modelo de negócio com incentivos desalinhados ao cliente"],
+    ["Risco para o Capital",  "BAIXO",      "Ativos custodiados na B3 — protegidos mesmo em falência da XP"],
 ]
 
 cor_nivel = {
@@ -254,7 +282,7 @@ for i, row in enumerate(matriz_data[1:], 1):
     ]
 
 matriz_tbl = Table(
-    [[Paragraph(c, style(f"mh{j}",
+    [[Paragraph(c, style(f"mh{i}{j}",
         fontSize=9,
         fontName="Helvetica-Bold" if i==0 else "Helvetica",
         textColor=BRANCO if i==0 else PRETO,
@@ -265,76 +293,168 @@ matriz_tbl = Table(
 matriz_tbl.setStyle(TableStyle(m_style))
 story += [matriz_tbl, Spacer(1, 0.4*cm)]
 
-# ── 4. Análise: É Seguro Manter Investimentos na XP? ──────────────────
+# ── 4. O Capital Está em Risco? ──────────────────────────────────────
 story += [
-    header_block("4. ANÁLISE: É SEGURO MANTER INVESTIMENTOS NA XP?", AZUL_MEDIO),
+    header_block("4. O SEU CAPITAL ESTÁ EM RISCO? ENTENDA A DIFERENÇA", VERDE),
+    Spacer(1, 0.3*cm),
+    Paragraph(
+        "Esta é a pergunta mais importante — e a resposta exige clareza técnica. "
+        "O escândalo do Banco Master é grave do ponto de vista ético e regulatório, "
+        "mas <b>não significa que o dinheiro investido em outros produtos vai desaparecer</b>. "
+        "Entenda por quê:", body),
+    Spacer(1, 0.25*cm),
+]
+
+# Caixa: Custódia B3
+story += [
+    caixa_destaque([
+        Paragraph("CUSTÓDIA INDEPENDENTE: A PROTEÇÃO ESTRUTURAL DO INVESTIDOR", style("CxTit",
+            fontSize=11, fontName="Helvetica-Bold", textColor=VERDE_ESCURO,
+            leading=15, alignment=TA_LEFT)),
+        Spacer(1, 0.15*cm),
+        Paragraph(
+            "No Brasil, os ativos financeiros dos investidores são <b>segregados do patrimônio da corretora</b> "
+            "por determinação legal. Isso significa que mesmo que a XP Investimentos fosse à falência amanhã, "
+            "seus ativos <b>não seriam usados para pagar credores da empresa</b>.", body),
+        Spacer(1, 0.1*cm),
+        bullet("Ações, ETFs e BDRs → custodiados na <b>B3 (Bolsa de Valores)</b>", "✔", bullet_verde),
+        bullet("Fundos de investimento → patrimônio separado, gerido pela gestora, não pela XP", "✔", bullet_verde),
+        bullet("Tesouro Direto → custodiado diretamente no <b>Tesouro Nacional</b>", "✔", bullet_verde),
+        bullet("CDBs, LCIs e LCAs de outros bancos → vinculados ao emissor, não à XP", "✔", bullet_verde),
+        Spacer(1, 0.1*cm),
+        Paragraph(
+            "<b>Conclusão:</b> a XP é apenas a plataforma de acesso. O patrimônio pertence ao investidor "
+            "e está protegido por lei. Uma eventual crise na corretora <b>não faz o dinheiro desaparecer</b>.",
+            destaque_verde),
+    ], cor_borda=VERDE, cor_fundo=colors.HexColor("#EAFAF1")),
     Spacer(1, 0.3*cm),
 ]
 
 story += [
-    Paragraph("<b>4.1 O que está efetivamente em risco</b>", bold_body),
-    bullet("Seus <b>ativos (ações, fundos, títulos)</b> são custodiados pela B3 ou pelo emissor, "
-           "<b>não pelo patrimônio da XP</b>. Uma eventual falência da corretora não implica perda desses ativos.", "✔"),
-    bullet("CDBs do Banco Master já comprados acima de R$ 250 mil por CPF <b>podem sofrer perda "
-           "parcial</b>, pois excedem o limite do FGC.", "⚠"),
-    bullet("Investimentos em outros produtos (Tesouro Direto, ações, fundos de terceiros) "
-           "estão <b>protegidos por custódia independente</b>.", "✔"),
-    Spacer(1, 0.2*cm),
-
-    Paragraph("<b>4.2 Riscos Indiretos ao Permanecer na XP</b>", bold_body),
-    bullet("Possível <b>deterioração do modelo de assessoria</b> se a plataforma for obrigada a mudar "
-           "sua forma de remuneração (comissões).", "⚠"),
-    bullet("Risco de <b>novos produtos problemáticos</b>: o modelo de incentivos por distribuição "
-           "ainda não foi reformado estruturalmente.", "⚠"),
-    bullet("Impacto reputacional pode afetar o <b>valor das ações XP Inc. (XPFS3)</b> para quem as detém.", "⚠"),
-    Spacer(1, 0.2*cm),
-
-    Paragraph("<b>4.3 Fatores que Atenuam o Risco</b>", bold_body),
-    bullet("A XP é uma empresa <b>listada na NASDAQ</b>, auditada e com balanços públicos.", "✔"),
-    bullet("O <b>Banco Central e a CVM</b> têm regulação ativa sobre a corretora.", "✔"),
-    bullet("A plataforma tem <b>mais de 4 milhões de clientes</b> e seria systemicamente relevante "
-           "para qualquer intervenção regulatória.", "✔"),
-    bullet("Os investidores do Banco Master <b>estão sendo ressarcidos via FGC</b> (até o limite), "
-           "reduzindo o dano concreto imediato.", "✔"),
+    Paragraph("<b>O que de fato pode estar em risco</b>", bold_body),
+    bullet("CDBs do <b>Banco Master</b> acima de R$ 250 mil/CPF — pois o FGC não cobre o excedente", "⚠"),
+    bullet("Novas aquisições de CDBs de bancos pequenos via plataformas com conflito de interesse", "⚠"),
+    bullet("Ações da <b>XP Inc. (XPFS3)</b> para quem as detém — risco reputacional afeta cotação", "⚠"),
     Spacer(1, 0.3*cm),
 ]
 
-# ── 5. Veredicto ───────────────────────────────────────────────────────
+# ── 5. Por que a Consultoria Fee-Based Protege o Patrimônio ───────────
 story += [
-    header_block("5. VEREDICTO FINAL", AZUL_ESCURO),
+    header_block("5. POR QUE A CONSULTORIA FEE-BASED PROTEGE SEU PATRIMÔNIO", VERDE_ESCURO),
+    Spacer(1, 0.3*cm),
+    Paragraph(
+        "O caso XP × Banco Master é um exemplo perfeito de como o <b>modelo de remuneração do consultor "
+        "define — ou destrói — a qualidade do conselho financeiro</b>. Veja o contraste:", body),
+    Spacer(1, 0.25*cm),
+]
+
+# Tabela comparativa
+comp_data = [
+    ["Critério", "Modelo Comissionado (XP)", "Consultor Fee-Based"],
+    ["Fonte de receita",    "Comissão paga pelo produto",        "Honorário pago pelo cliente"],
+    ["Incentivo principal", "Vender o produto que paga mais",    "Resultado e satisfação do cliente"],
+    ["Conflito de interesse","Estrutural e permanente",          "Inexistente — interesses alinhados"],
+    ["Seleção de produtos", "Limitada ao catálogo da plataforma","Universo aberto, sem restrições"],
+    ["Transparência",       "Comissão frequentemente oculta",    "Remuneração 100% transparente"],
+    ["Fidelidade ao cliente","Secundária ao volume de vendas",   "Única obrigação e compromisso"],
+    ["Risco ao patrimônio", "Alto (caso Banco Master)",          "Minimizado pela ausência de viés"],
+]
+
+comp_style = [
+    ("BACKGROUND",    (0,0), (-1,0), AZUL_ESCURO),
+    ("TEXTCOLOR",     (0,0), (-1,0), BRANCO),
+    ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
+    ("BACKGROUND",    (2,1), (2,-1), colors.HexColor("#EAFAF1")),
+    ("FONTSIZE",      (0,0), (-1,-1), 8.5),
+    ("ALIGN",         (0,0), (-1,-1), "LEFT"),
+    ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
+    ("ROWBACKGROUNDS",(0,1), (1,-1), [CINZA_CLARO, BRANCO]),
+    ("GRID",          (0,0), (-1,-1), 0.4, CINZA_MEDIO),
+    ("TOPPADDING",    (0,0), (-1,-1), 6),
+    ("BOTTOMPADDING", (0,0), (-1,-1), 6),
+    ("LEFTPADDING",   (0,0), (-1,-1), 7),
+    ("RIGHTPADDING",  (0,0), (-1,-1), 7),
+    ("TEXTCOLOR",     (2,1), (2,-1), VERDE_ESCURO),
+    ("FONTNAME",      (2,1), (2,-1), "Helvetica-Bold"),
+    ("TEXTCOLOR",     (1,1), (1,-1), VERMELHO),
+]
+
+comp_tbl = Table(
+    [[Paragraph(c, style(f"ct{i}{j}",
+        fontSize=8.5,
+        fontName="Helvetica-Bold" if i==0 else "Helvetica",
+        textColor=BRANCO if i==0 else PRETO,
+        leading=12)) for j, c in enumerate(row)]
+     for i, row in enumerate(comp_data)],
+    colWidths=[4.2*cm, 5.8*cm, doc.width - 10*cm]
+)
+comp_tbl.setStyle(TableStyle(comp_style))
+story += [comp_tbl, Spacer(1, 0.35*cm)]
+
+# Caixa de vantagens fee-based
+story += [
+    caixa_destaque([
+        Paragraph("AS 6 VANTAGENS CONCRETAS DO SEU CONSULTOR FEE-BASED", style("CxTit2",
+            fontSize=11, fontName="Helvetica-Bold", textColor=VERDE_ESCURO,
+            leading=15, alignment=TA_LEFT)),
+        Spacer(1, 0.15*cm),
+        bullet("<b>Recomendação isenta:</b> nenhum produto é indicado porque paga mais comissão — "
+               "a seleção é feita exclusivamente pelo mérito e adequação ao seu perfil.", "1.", bullet_verde),
+        bullet("<b>Acesso ao melhor do mercado:</b> sem estar preso ao catálogo de uma única plataforma, "
+               "o consultor fee-based varre todo o mercado e encontra as melhores oportunidades para você.", "2.", bullet_verde),
+        bullet("<b>Alinhamento total de interesses:</b> o consultor só prospera se você prosperar — "
+               "sua carteira bem sucedida é o único produto que ele precisa vender.", "3.", bullet_verde),
+        bullet("<b>Monitoramento ativo e alerta precoce:</b> sem incentivo para manter produtos ruins na carteira, "
+               "o consultor age imediatamente ao identificar riscos como o do Banco Master.", "4.", bullet_verde),
+        bullet("<b>Transparência total de custos:</b> você sabe exatamente quanto paga e por quê — "
+               "não há taxas ocultas embutidas em produtos.", "5.", bullet_verde),
+        bullet("<b>Proteção patrimonial de longo prazo:</b> a visão fee-based é construtiva e contínua — "
+               "o foco está em preservar e crescer seu patrimônio, não em bater metas de distribuição.", "6.", bullet_verde),
+    ], cor_borda=VERDE, cor_fundo=colors.HexColor("#EAFAF1")),
+    Spacer(1, 0.35*cm),
+]
+
+# ── 6. Veredicto ───────────────────────────────────────────────────────
+story += [
+    header_block("6. VEREDICTO FINAL", AZUL_ESCURO),
     Spacer(1, 0.3*cm),
 ]
 
 veredictos = [
-    ("CURTO PRAZO\n(0–6 meses)", "MODERADAMENTE SEGURO",
-     "Seus ativos custodiados não estão em risco direto. "
-     "Evite novos CDBs de bancos pequenos distribuídos pela XP. "
+    ("CAPITAL\nCUSTODIADO", "PROTEGIDO",
+     "Ações, fundos, Tesouro Direto e demais ativos custodiados na B3 "
+     "ou nos emissores <b>não desaparecem</b> em eventual problema com a XP. "
+     "A segregação patrimonial é garantida por lei.",
+     VERDE),
+    ("CURTO PRAZO\n(0–6 meses)", "ATENÇÃO PONTUAL",
+     "Verifique se há CDBs do Banco Master acima de R$ 250 mil/CPF. "
+     "Evite novos CDBs de bancos pequenos sem análise independente. "
      "Monitore o andamento da ação judicial.",
      AZUL_CLARO),
-    ("MÉDIO PRAZO\n(6–18 meses)", "ATENÇÃO REDOBRADA",
-     "O desfecho regulatório e judicial definirá se o modelo da XP "
-     "será reformado. Avalie diversificação para outra custódia "
-     "(BTG, Rico, Clear, Banco Inter).",
+    ("MÉDIO PRAZO\n(6–18 meses)", "ACOMPANHAMENTO",
+     "O desfecho regulatório definirá se o modelo da XP será reformado. "
+     "Avalie diversificação de custódia se necessário. "
+     "Seu consultor fee-based manterá você informado sem viés.",
      LARANJA),
-    ("LONGO PRAZO\n(+18 meses)", "DECISÃO ESTRATÉGICA",
-     "Se a XP não demonstrar reforma estrutural no modelo de incentivos, "
-     "considere migração completa da carteira. "
-     "A lealdade à plataforma não deve superar a proteção do patrimônio.",
+    ("LONGO PRAZO\n(+18 meses)", "SEGURO COM CONSULTORIA",
+     "Com um consultor fee-based ao seu lado, você está estruturalmente "
+     "protegido contra conflitos de interesse como o exposto neste caso. "
+     "A decisão de plataforma pode ser revista a qualquer momento.",
      AZUL_MEDIO),
 ]
 
 for prazo, nivel, descricao, cor in veredictos:
     prazo_p = Paragraph(prazo.replace("\n", "<br/>"),
-        style("Prazo", fontSize=9, fontName="Helvetica-Bold",
+        style(f"Prazo{prazo[:3]}", fontSize=9, fontName="Helvetica-Bold",
               textColor=BRANCO, alignment=TA_CENTER, leading=13))
     nivel_p = Paragraph(nivel,
-        style("Nivel2", fontSize=10, fontName="Helvetica-Bold",
+        style(f"Nivel{prazo[:3]}", fontSize=10, fontName="Helvetica-Bold",
               textColor=BRANCO, alignment=TA_CENTER))
     desc_p  = Paragraph(descricao, body)
 
     v_tbl = Table(
         [[prazo_p, nivel_p, desc_p]],
-        colWidths=[3*cm, 5*cm, doc.width - 8*cm]
+        colWidths=[3*cm, 4.5*cm, doc.width - 7.5*cm]
     )
     v_tbl.setStyle(TableStyle([
         ("BACKGROUND",    (0,0), (0,-1), AZUL_ESCURO),
@@ -350,19 +470,23 @@ for prazo, nivel, descricao, cor in veredictos:
     ]))
     story += [v_tbl, Spacer(1, 0.2*cm)]
 
-# ── 6. Recomendações ───────────────────────────────────────────────────
+# ── 7. Recomendações ───────────────────────────────────────────────────
 story += [
     Spacer(1, 0.1*cm),
-    header_block("6. RECOMENDAÇÕES PRÁTICAS", VERDE),
+    header_block("7. RECOMENDAÇÕES PRÁTICAS", AZUL_MEDIO),
     Spacer(1, 0.2*cm),
-    bullet("<b>Verifique imediatamente</b> se possui CDBs do Banco Master acima de R$ 250 mil/CPF.", "1."),
-    bullet("<b>Não adquira novos</b> CDBs de bancos de médio/pequeno porte via qualquer plataforma "
-           "sem análise de risco independente.", "2."),
-    bullet("<b>Diversifique a custódia:</b> mantenha ativos críticos em mais de uma instituição.", "3."),
-    bullet("<b>Acompanhe o andamento</b> da Ação Civil Pública no TJRJ contra XP, BTG e Nubank.", "4."),
-    bullet("<b>Consulte um advisor independente</b> (fee-only) sem vínculo com distribuidoras.", "5."),
-    bullet("<b>Leia os prospectos</b> de todos os produtos antes de investir; exija disclosure "
-           "completo de riscos e comissões.", "6."),
+    bullet("<b>Não entre em pânico:</b> seus ativos custodiados estão protegidos por lei — "
+           "o dinheiro não some com problemas na corretora.", "1."),
+    bullet("<b>Verifique agora</b> se possui CDBs do Banco Master acima de R$ 250 mil/CPF "
+           "e acione o FGC se necessário.", "2."),
+    bullet("<b>Não adquira novos</b> CDBs de bancos de médio/pequeno porte sem análise "
+           "independente do seu consultor.", "3."),
+    bullet("<b>Acompanhe a Ação Civil Pública</b> no TJRJ — o desfecho pode gerar ressarcimentos "
+           "adicionais para quem foi prejudicado.", "4."),
+    bullet("<b>Mantenha sua consultoria fee-based:</b> este caso prova, na prática, por que o modelo "
+           "isento é o mais seguro para o seu patrimônio.", "5."),
+    bullet("<b>Revise sua carteira</b> junto ao seu consultor para confirmar que não há exposição "
+           "indesejada a produtos com conflito de interesse.", "6."),
     Spacer(1, 0.3*cm),
 ]
 
@@ -376,7 +500,7 @@ story += [
         "Consulte sempre um profissional habilitado antes de tomar decisões financeiras.",
         nota_style),
     Paragraph(
-        f"Gerado em {date.today().strftime('%d/%m/%Y')} · Robos Trading · Uso Interno",
+        f"Gerado em {date.today().strftime('%d/%m/%Y')} · Robos Trading · Uso Exclusivo do Cliente",
         style("Footer", fontSize=8, textColor=CINZA_MEDIO,
               fontName="Helvetica", alignment=TA_CENTER)),
 ]
