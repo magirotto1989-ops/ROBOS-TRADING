@@ -639,7 +639,14 @@ Subscribe for a new WWII documentary every week.
 #WWII #WorldWar2 #MilitaryHistory #PearlHarbor #PacificWar""",
 },
 
-]  # end of videos list (abbreviated — 2 of 10 shown for structure test)
+]  # V1 and V2
+
+# Import V3–V10 from data modules
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
+from videos_3_to_10 import V3, V4, V5
+from videos_6_to_10 import V6, V7, V8, V9, V10
+videos += [V3, V4, V5, V6, V7, V8, V9, V10]
 
 # ══════════════════════════════════════
 # COVER
